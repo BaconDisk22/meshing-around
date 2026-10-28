@@ -1,0 +1,18 @@
+name: Desktop foundation
+on:
+  push:
+    branches: [main, feature/desktop-foundation]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check Python syntax
+        run: python -m py_compile desktop/launcher.py
+      - name: Headless desktop validation
+        run: python desktop/launcher.py --check
