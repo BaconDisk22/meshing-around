@@ -6,6 +6,7 @@ import socket
 import subprocess
 import sys
 import threading
+from radio_config import read_radio, save_radio
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BOT = ROOT / "mesh_bot.py"
@@ -28,7 +29,11 @@ def main() -> None:
     root = tk.Tk()
     root.title("Meshing Around • Desktop")
     root.geometry("850x600")
-    host = tk.StringVar(value="meshtastic.local")
+    config_path = ROOT / "config.ini"
+    template_path = ROOT / "config.template"
+    initial_mode, initial_endpoint = read_radio(config_path if config_path.exists() else template_path)
+    mode = tk.StringVar(value=initial_mode)
+    host = tk.StringVar(value=initial_endpoint or "meshtastic.local")
     status = tk.StringVar(value="Bot stopped")
     events = queue.Queue()
     process = [None]
@@ -36,6 +41,7 @@ def main() -> None:
     frame.pack(fill="both", expand=True)
     ttk.Label(frame, text="MESHING AROUND", font=("Helvetica", 22, "bold")).pack(anchor="w")
     ttk.Label(frame, textvariable=status).pack(anchor="w", pady=10)
+    ttk.Combobox(frame, textvariable=mode, values=("tcp", "ble", "serial"), state="readonly").pack(anchor="w")
     ttk.Entry(frame, textvariable=host).pack(fill="x")
     output = tk.Text(frame, height=20, bg="#192637", fg="#e5edf7", state="disabled")
     output.pack(fill="both", expand=True, pady=12)
@@ -44,7 +50,19 @@ def main() -> None:
         output.insert("end", line.rstrip() + "\n")
         output.see("end")
         output.configure(state="disabled")
+    def save():
+        if process[0] is not None and process[0].poll() is None:
+            messagebox.showwarning("Stop bot", "Stop bot before saving radio settings")
+            return
+        try:
+            save_radio(config_path, template_path, mode.get(), host.get())
+            log("Radio configuration saved")
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Save failed", str(exc))
     def test():
+        if mode.get() != "tcp":
+            log("TCP test only applies to TCP mode")
+            return
         address = host.get()
         def worker():
             try:
@@ -76,7 +94,7 @@ def main() -> None:
             process[0].terminate()
     buttons = ttk.Frame(frame)
     buttons.pack(fill="x")
-    for label, callback in (("Test TCP", test), ("Start bot", start), ("Stop bot", stop)):
+    for label, callback in (("Test TCP", test), ("Save radio", save), ("Start bot", start), ("Stop bot", stop)):
         ttk.Button(buttons, text=label, command=callback).pack(side="left", padx=4)
     def poll():
         try:
