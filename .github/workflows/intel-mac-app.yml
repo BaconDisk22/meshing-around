@@ -1,6 +1,8 @@
 name: Intel Mac app and DMG (beta)
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     paths:
       - 'desktop/**'
@@ -28,10 +30,8 @@ jobs:
           python -m unittest discover -s tests -p 'test_radio_config.py' -v
           python -m unittest discover -s tests -p 'test_appearance.py' -v
           python desktop/launcher.py --check
-      - name: Stage tracked application resources
-        run: |
-          mkdir -p staging/payload
-          git ls-files -z | python -c 'import pathlib,sys; data=sys.stdin.buffer.read().split(b"\0"); p=pathlib.Path("staging/payload"); import shutil; [( (p/pathlib.Path(x.decode()).parent).mkdir(parents=True,exist_ok=True), shutil.copy2(x.decode(),p/x.decode())) for x in data if x and not x.startswith((b".github/",b"tests/",b".git/")) and x != b"config.ini"]'
+      - name: Stage runtime resources
+        run: python desktop/stage_payload.py
       - name: Build bundled bot executable
         run: |
           python -m PyInstaller --noconfirm --clean --onefile --name meshing-around-bot --paths . mesh_bot.py
@@ -50,6 +50,8 @@ jobs:
           file "dist/Meshing Around.app/Contents/MacOS/Meshing Around"
           lipo -archs "dist/Meshing Around.app/Contents/MacOS/Meshing Around" | grep -q x86_64
           find "dist/Meshing Around.app/Contents" -name meshing-around-bot -type f | grep -q .
+      - name: Validate bundled runtime files
+        run: python desktop/verify_bundle.py 'dist/Meshing Around.app'
       - name: Package DMG
         run: |
           mkdir -p dmg-stage
