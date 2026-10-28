@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags: ['v*.*.*-beta.*']
   pull_request:
     paths:
       - 'desktop/**'
@@ -14,7 +15,7 @@ jobs:
   build-intel:
     runs-on: macos-15-intel
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -30,6 +31,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_radio_config.py' -v
           python -m unittest discover -s tests -p 'test_appearance.py' -v
           python -m unittest discover -s tests -p 'test_mac_first_launch.py' -v
+          python -m unittest discover -s tests -p 'test_release_gate.py' -v
           python desktop/launcher.py --check
       - name: Stage runtime resources
         run: python desktop/stage_payload.py
@@ -73,3 +75,21 @@ jobs:
             dist/Meshing-Around-Intel-Mac-Beta.dmg
           if-no-files-found: error
           retention-days: 14
+      - name: Verify beta tag and generate SHA-256
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          python desktop/release_gate.py \
+            --tag "${GITHUB_REF_NAME}" \
+            --dmg "dist/Meshing-Around-Intel-Mac-Beta.dmg" \
+            --output "dist/SHA256SUMS.txt"
+      - name: Publish prerelease only after build and smoke checks
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "dist/Meshing-Around-Intel-Mac-Beta.dmg" \
+            "dist/SHA256SUMS.txt" \
+            --verify-tag --prerelease \
+            --title "Meshing Around ${GITHUB_REF_NAME} (Intel Mac beta)" \
+            --notes "Unsigned Intel x86_64 macOS beta. Requires user testing on Tahoe 26.7.1. No verified radio connectivity guarantee."
