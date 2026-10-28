@@ -4,6 +4,7 @@
 # TODO - add interaction to mesh?
 # to use this today run it seperately and open a browser to http://localhost:8420
 
+import sys
 import os
 import http.server
 
@@ -49,7 +50,7 @@ if SSL:
         ctx.load_cert_chain(certfile='./server.pem')
     except FileNotFoundError:
         print("SSL certificate file not found. Please generate it using the command provided in the comments.")
-        exit(1)
+        sys.exit(1)
     httpd.socket = ctx.wrap_socket(httpd.socket, server_side=True)
     print(f"Serving reports at https://{server_ip}:{PORT} Press ^C to quit.\n\n")
 else:
@@ -59,4 +60,4 @@ if not webServerLogs:
     print("Server Logs are disabled")
 # Serve forever, that is until the user interrupts the process
 httpd.serve_forever()
-exit(0)
+sys.exit(0)

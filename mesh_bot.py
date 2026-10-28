@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # Meshtastic Autoresponder MESH Bot
 # K7MHI Kelly Keeton 2025
+import sys
 try:
     from pubsub import pub
 except ImportError:
     print(f"Important dependencies are not met, try install.sh\n\n Did you mean to './launch.sh mesh' using a virtual environment.")
-    exit(1)
+    sys.exit(1)
 
 import asyncio
 import time # for sleep, get some when you can :)

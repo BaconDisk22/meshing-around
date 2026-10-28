@@ -1,6 +1,7 @@
 # helper functions and init for system related tasks
 # K7MHI Kelly Keeton 2024
 
+import sys
 import meshtastic.serial_interface #pip install meshtastic or use launch.sh for venv
 import meshtastic.tcp_interface
 import meshtastic.ble_interface
@@ -366,7 +367,7 @@ help_message = ", ".join(help_message)
 ble_count = sum(1 for i in range(1, 10) if globals().get(f'interface{i}_type') == 'ble')
 if ble_count > 1:
     logger.critical(f"System: Multiple BLE interfaces detected. Only one BLE interface is allowed. Exiting")
-    exit()
+    sys.exit(1)
 
 # Initialize interfaces
 logger.debug(f"System: Initializing Interfaces")
@@ -402,10 +403,10 @@ for i in range(1, 10):
                 globals()[f'interface{i}'] = meshtastic.ble_interface.BLEInterface(globals().get(f'mac{i}'))
             else:
                 logger.critical(f"System: Interface Type: {interface_type} not supported. Validate your config against config.template Exiting")
-                exit()
+                sys.exit(1)
     except Exception as e:
         logger.critical(f"System: abort. Initializing Interface{i} {e}")
-        exit()
+        sys.exit(1)
 
 # Get my node numbers for global use       
 my_node_ids = [globals().get(f'myNodeNum{i}') for i in range(1, 10)]
