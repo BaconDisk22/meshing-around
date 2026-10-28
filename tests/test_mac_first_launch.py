@@ -29,6 +29,24 @@ class MacFirstLaunchTests(unittest.TestCase):
             prepare_workspace(bundle, workspace)
             self.assertEqual((workspace / "config.ini").read_text(), "custom settings")
 
+    def test_first_config_defaults_to_wifi_radio(self):
+        from mac_app import mac_defaults
+        template = ("[interface]\ntype = serial\nport = /dev/ttyACM0\n# hostname = meshtastic.local\n"
+                    "[interface2]\nenabled = False\ntype = serial\nport = /dev/ttyACM0\n")
+        result = mac_defaults(template)
+        self.assertIn("[interface]\ntype = tcp\nhostname = meshtastic.local\n# hostname", result)
+        self.assertIn("[interface2]\nenabled = False\ntype = serial\nport = /dev/ttyACM0\n", result)
+
+    def test_shipped_template_gets_mac_defaults(self):
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "desktop"))
+        from mac_app import mac_defaults
+        from radio_config import read_radio
+        template = pathlib.Path(__file__).resolve().parents[1] / "config.template"
+        with tempfile.TemporaryDirectory() as directory:
+            config = pathlib.Path(directory) / "config.ini"
+            config.write_text(mac_defaults(template.read_text(encoding="utf-8")))
+            self.assertEqual(read_radio(config), ("tcp", "meshtastic.local"))
+
     def test_fails_if_bot_missing(self):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)

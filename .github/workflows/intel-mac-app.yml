@@ -32,21 +32,32 @@ jobs:
           python -m unittest discover -s tests -p 'test_appearance.py' -v
           python -m unittest discover -s tests -p 'test_mac_first_launch.py' -v
           python -m unittest discover -s tests -p 'test_release_gate.py' -v
+          python -m unittest discover -s tests -p 'test_radio_probe.py' -v
           python desktop/launcher.py --check
       - name: Stage runtime resources
         run: python desktop/stage_payload.py
       - name: Build bundled bot executable
         run: |
-          python -m PyInstaller --noconfirm --clean --onefile --name meshing-around-bot --paths . mesh_bot.py
+          python -m PyInstaller --noconfirm --clean --onefile --name meshing-around-bot --paths . \
+            --collect-submodules bleak mesh_bot.py
       - name: Build Intel macOS desktop app
         run: |
           python -m PyInstaller --noconfirm --clean --windowed --onedir \
             --name "Meshing Around" \
             --target-architecture x86_64 \
             --paths desktop \
+            --collect-submodules bleak \
+            --osx-bundle-identifier org.meshingaround.desktop \
             --add-data "staging/payload:payload" \
             --add-binary "dist/meshing-around-bot:." \
             desktop/mac_app.py
+      - name: Add macOS Bluetooth permission text and re-sign
+        run: |
+          PLIST="dist/Meshing Around.app/Contents/Info.plist"
+          plutil -replace NSBluetoothAlwaysUsageDescription -string \
+            "Meshing Around uses Bluetooth to connect to your Meshtastic radio." "$PLIST"
+          codesign --force --deep --sign - "dist/Meshing Around.app"
+          plutil -extract NSBluetoothAlwaysUsageDescription raw "$PLIST"
       - name: Confirm architecture and application layout
         run: |
           test -d "dist/Meshing Around.app"
@@ -59,6 +70,25 @@ jobs:
         run: |
           "dist/Meshing Around.app/Contents/MacOS/Meshing Around" --self-test
           test -f "$HOME/Library/Application Support/MeshingAround/runtime/config.ini"
+          grep -q '^hostname = meshtastic.local' "$HOME/Library/Application Support/MeshingAround/runtime/config.ini"
+      - name: Smoke test bundled radio library and bot startup failure handling
+        run: |
+          # Port 9 is closed on the runner, so both must fail cleanly, not crash.
+          set +e
+          "dist/Meshing Around.app/Contents/MacOS/Meshing Around" --probe-radio tcp 127.0.0.1:9 | tee probe.log
+          probe_code=${PIPESTATUS[0]}
+          RUNTIME="$HOME/Library/Application Support/MeshingAround/runtime"
+          sed -i '' 's/^hostname = meshtastic.local/hostname = 127.0.0.1:9/' "$RUNTIME/config.ini"
+          BOT=$(find "dist/Meshing Around.app/Contents" -name meshing-around-bot -type f | head -1)
+          (cd "$RUNTIME" && "$GITHUB_WORKSPACE/$BOT") > bot.log 2>&1
+          bot_code=$?
+          set -e
+          cat bot.log
+          test "$probe_code" = 1
+          grep -q '^RADIO_PROBE_FAILED' probe.log
+          test "$bot_code" = 1
+          grep -q 'abort. Initializing Interface1' bot.log
+          ! grep -q 'Failed to execute script' bot.log
       - name: Package DMG
         run: |
           mkdir -p dmg-stage

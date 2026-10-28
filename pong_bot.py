@@ -2,11 +2,12 @@
 # Meshtastic Autoresponder PONG Bot
 # K7MHI Kelly Keeton 2024
 
+import sys
 try:
     from pubsub import pub
 except ImportError:
     print(f"Important dependencies are not met, try install.sh\n\n Did you mean to './launch.sh pong' using a virtual environment.")
-    exit(1)
+    sys.exit(1)
 
 import asyncio
 import time # for sleep, get some when you can :)

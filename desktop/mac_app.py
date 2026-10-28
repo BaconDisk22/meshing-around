@@ -19,6 +19,22 @@ def locate_bot(bundle: Path) -> Path:
     raise FileNotFoundError("Bundled Meshtastic bot executable missing")
 
 
+def mac_defaults(text: str) -> str:
+    """Point the Linux serial default at a Wi-Fi radio; leave comments intact."""
+    lines, section = [], None
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        if stripped.startswith("["):
+            section = stripped
+        elif section == "[interface]":
+            if stripped == "type = serial":
+                line = "type = tcp\n"
+            elif stripped == "port = /dev/ttyACM0":
+                line = "hostname = meshtastic.local\n"
+        lines.append(line)
+    return "".join(lines)
+
+
 def prepare_workspace(bundle: Path, workspace: Path) -> tuple[Path, Path]:
     source = bundle / "payload"
     if not source.is_dir():
@@ -39,7 +55,7 @@ def prepare_workspace(bundle: Path, workspace: Path) -> tuple[Path, Path]:
     if not config.exists():
         if not template.is_file():
             raise FileNotFoundError("Bundled config.template missing")
-        shutil.copy2(template, config)
+        config.write_text(mac_defaults(template.read_text(encoding="utf-8")), encoding="utf-8")
     return workspace, bot
 
 
@@ -49,6 +65,10 @@ def main() -> None:
     bundle = Path(sys._MEIPASS)
     workspace = Path.home() / "Library" / "Application Support" / "MeshingAround" / "runtime"
     workspace, bot = prepare_workspace(bundle, workspace)
+    if "--probe-radio" in sys.argv:
+        import radio_probe
+        index = sys.argv.index("--probe-radio")
+        sys.exit(radio_probe.main(sys.argv[index + 1:index + 3]))
     if "--self-test" in sys.argv:
         print(f"MAC_APP_SELF_TEST_OK: {bot.name}", flush=True)
         return
