@@ -29,6 +29,7 @@ jobs:
           python -m compileall -q desktop
           python -m unittest discover -s tests -p 'test_radio_config.py' -v
           python -m unittest discover -s tests -p 'test_appearance.py' -v
+          python -m unittest discover -s tests -p 'test_mac_first_launch.py' -v
           python desktop/launcher.py --check
       - name: Stage runtime resources
         run: python desktop/stage_payload.py
@@ -52,6 +53,10 @@ jobs:
           find "dist/Meshing Around.app/Contents" -name meshing-around-bot -type f | grep -q .
       - name: Validate bundled runtime files
         run: python desktop/verify_bundle.py 'dist/Meshing Around.app'
+      - name: Smoke test frozen app without opening GUI
+        run: |
+          "dist/Meshing Around.app/Contents/MacOS/Meshing Around" --self-test
+          test -f "$HOME/Library/Application Support/MeshingAround/runtime/config.ini"
       - name: Package DMG
         run: |
           mkdir -p dmg-stage
