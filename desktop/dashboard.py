@@ -134,7 +134,8 @@ def launch(root_path, bot_path, tcp_probe):
         if process[0] is not None and process[0].poll() is None:
             return
         try:
-            child = subprocess.Popen([sys.executable, "-u", str(bot_path)],
+            command = [str(bot_path)] if getattr(sys, "frozen", False) else [sys.executable, "-u", str(bot_path)]
+            child = subprocess.Popen(command,
                                      cwd=root_path, stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT, text=True, bufsize=1)
         except OSError as exc:
