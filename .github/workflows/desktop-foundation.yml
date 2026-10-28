@@ -13,6 +13,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Check Python syntax
-        run: python -m py_compile desktop/launcher.py
+        run: python -m py_compile desktop/launcher.py desktop/radio_config.py
+      - name: Radio configuration unit tests
+        run: python -m unittest discover -s tests -p 'test_radio_config.py' -v
       - name: Headless desktop validation
         run: python desktop/launcher.py --check
