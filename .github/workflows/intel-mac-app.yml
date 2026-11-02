@@ -59,6 +59,18 @@ jobs:
         run: |
           "dist/Meshing Around.app/Contents/MacOS/Meshing Around" --self-test
           test -f "$HOME/Library/Application Support/MeshingAround/runtime/config.ini"
+      - name: Capture dashboard screenshot (best effort)
+        continue-on-error: true
+        run: |
+          mkdir -p screenshots
+          python desktop/capture_dashboard.py screenshots/desktop-dashboard.png
+      - name: Upload dashboard screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-screenshot
+          path: screenshots/desktop-dashboard.png
+          if-no-files-found: ignore
       - name: Package DMG
         run: |
           mkdir -p dmg-stage
