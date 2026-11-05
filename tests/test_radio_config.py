@@ -16,6 +16,15 @@ class RadioConfigTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validate(mode, endpoint)
 
+    def test_tcp_rejects_whitespace_in_hostname(self):
+        for endpoint in ("radio name", "radio.local :4403", "radio.local: 4403"):
+            with self.subTest(endpoint=endpoint):
+                with self.assertRaises(ValueError):
+                    validate("tcp", endpoint)
+
+    def test_tcp_accepts_standard_host_and_port(self):
+        self.assertEqual(validate("tcp", "10.0.0.76:4403"), ("tcp", "10.0.0.76:4403"))
+
     def test_save_preserves_unrelated_settings_and_backup(self):
         with tempfile.TemporaryDirectory() as folder:
             root = pathlib.Path(folder)
