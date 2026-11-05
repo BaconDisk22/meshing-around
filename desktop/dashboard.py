@@ -29,6 +29,7 @@ def launch(root_path, bot_path, tcp_probe):
     process = [None]
     probe_active = [False]
     probe_settings = [None]
+    closing = [False]
     colored = []
     pages = {}
     nav_buttons = []
@@ -259,6 +260,9 @@ def launch(root_path, bot_path, tcp_probe):
                 kind, value = events.get_nowait()
                 if kind == "log":
                     log(value)
+                elif kind == "close":
+                    root.destroy()
+                    return
                 elif kind == "radio":
                     probe_active[0] = False
                     log(value)
@@ -283,8 +287,24 @@ def launch(root_path, bot_path, tcp_probe):
         root.after(100, poll)
 
     def close():
-        stop(wait=True)
-        root.destroy()
+        if closing[0]:
+            return
+        closing[0] = True
+        status.set("Stopping bot…")
+        # Waiting on the UI thread freezes the window during slow shutdown.
+        child = process[0]
+        def shutdown():
+            if child is not None and child.poll() is None:
+                try:
+                    child.terminate()
+                    child.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    child.wait()
+                except OSError as exc:
+                    events.put(("log", f"Shutdown error: {exc}"))
+            events.put(("close", None))
+        threading.Thread(target=shutdown, daemon=True).start()
 
     root.protocol("WM_DELETE_WINDOW", close)
     apply_theme()
