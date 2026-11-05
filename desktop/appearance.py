@@ -8,7 +8,7 @@ import tempfile
 
 DEFAULT_THEME = "Midnight Cyan"
 THEMES = {
-    "Midnight Cyan": {"bg": "#0d1420", "panel": "#182434", "sidebar": "#111d2b", "fg": "#e8f3ff", "muted": "#a3b6c9", "accent": "#28d9e8", "input": "#233447"},
+    "Midnight Cyan": {"bg": "#0d1420", "panel": "#182434", "sidebar": "#111d2b", "fg": "#e8f3ff", "muted": "#c2d1e0", "accent": "#69d9e9", "input": "#283b50"},
     "Futuristic Neon": {"bg": "#100e1c", "panel": "#211a36", "sidebar": "#17122b", "fg": "#f6efff", "muted": "#bdb0d6", "accent": "#d05cff", "input": "#302548"},
     "Mocha Mousse": {"bg": "#211b19", "panel": "#352a26", "sidebar": "#2b211d", "fg": "#f5e9dd", "muted": "#c8b3a5", "accent": "#e0ad83", "input": "#483832"},
     "Fun & Vibrant": {"bg": "#15222b", "panel": "#203744", "sidebar": "#192c38", "fg": "#f6fcff", "muted": "#b4d0db", "accent": "#ffb74d", "input": "#2a4856"},

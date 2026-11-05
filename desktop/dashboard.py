@@ -17,8 +17,8 @@ from log_export import export_logs
 def launch(root_path, bot_path, tcp_probe):
     root = tk.Tk()
     root.title("Meshing Around")
-    root.geometry("1000x680")
-    root.minsize(800, 540)
+    root.geometry("1120x740")
+    root.minsize(940, 620)
     selected_theme = tk.StringVar(value=load_theme())
     status = tk.StringVar(value="Stopped")
     radio_status = tk.StringVar(value="Radio not tested yet. Use Connection → Test connection.")
@@ -46,13 +46,14 @@ def launch(root_path, bot_path, tcp_probe):
 
     def label(parent, text=None, variable=None, size=12, muted=False):
         widget = tk.Label(parent, text=text, textvariable=variable, anchor="w",
-                          font=("Helvetica", size, "normal"))
+                          font=("Helvetica Neue", size + (1 if muted else 2), "normal" if muted else "bold"))
         colored.append((widget, "muted" if muted else "text"))
         return widget
 
     def button(parent, text, command):
         widget = tk.Button(parent, text=text, command=command, relief="flat",
-                           bd=0, padx=15, pady=9, cursor="hand2")
+                           bd=0, padx=18, pady=12, cursor="hand2",
+                           font=("Helvetica Neue", 14, "bold"), anchor="w")
         colored.append((widget, "button"))
         return widget
 
@@ -60,8 +61,10 @@ def launch(root_path, bot_path, tcp_probe):
     shell.pack(fill="both", expand=True)
     sidebar = frame(shell, "sidebar")
     sidebar.pack(side="left", fill="y")
-    label(sidebar, "MESHING AROUND", size=18).pack(padx=22, pady=(32, 12))
-    label(sidebar, "DESKTOP CONTROL", muted=True).pack(padx=22, pady=(0, 28))
+    sidebar.configure(width=246)
+    sidebar.pack_propagate(False)
+    label(sidebar, "MESHING AROUND", size=16).pack(anchor="w", padx=20, pady=(32, 12))
+    label(sidebar, "RADIO CONTROL CENTER", muted=True).pack(anchor="w", padx=20, pady=(0, 30))
     workspace = frame(shell, "bg")
     workspace.pack(side="left", fill="both", expand=True, padx=25, pady=24)
     header = frame(workspace, "bg")
@@ -75,6 +78,9 @@ def launch(root_path, bot_path, tcp_probe):
         pages[name] = frame(body, "bg")
 
     def show(name):
+        for nav_name, nav_widget in nav_buttons:
+            nav_widget.configure(relief="sunken" if nav_name == name else "flat",
+                                 bd=2 if nav_name == name else 0)
         for page in pages.values():
             page.pack_forget()
         current_page.set(name)
@@ -82,8 +88,8 @@ def launch(root_path, bot_path, tcp_probe):
 
     for name in names:
         widget = button(sidebar, name, lambda name=name: show(name))
-        widget.pack(fill="x", padx=12, pady=3)
-        nav_buttons.append(widget)
+        widget.pack(fill="x", padx=12, pady=5)
+        nav_buttons.append((name, widget))
 
     def heading(page, title, description):
         card = frame(page)
@@ -93,9 +99,15 @@ def launch(root_path, bot_path, tcp_probe):
 
     heading(pages["Dashboard"], "System overview",
             "Bot process status and desktop diagnostics")
-    label(pages["Dashboard"], variable=status, size=16).pack(anchor="w", pady=12)
-    label(pages["Dashboard"], variable=radio_status, muted=True).pack(anchor="w")
-    label(pages["Dashboard"], variable=last_event, muted=True).pack(anchor="w", pady=8)
+    def status_card(title, variable):
+        card = frame(pages["Dashboard"])
+        card.pack(fill="x", pady=8)
+        label(card, title, size=12, muted=True).pack(anchor="w", padx=22, pady=(18, 5))
+        label(card, variable=variable, size=15).pack(anchor="w", padx=22, pady=(0, 20))
+
+    status_card("BOT STATUS", status)
+    status_card("RADIO CONNECTION", radio_status)
+    status_card("RECENT ACTIVITY", last_event)
 
     heading(pages["Connection"], "Radio connection",
             "Select TCP, Bluetooth LE or USB/serial, test it, then save before starting")
@@ -224,7 +236,7 @@ def launch(root_path, bot_path, tcp_probe):
 
     label(pages["Logs"], "Bot output and diagnostics", muted=True).pack(anchor="w", pady=(0, 10))
     output = tk.Text(pages["Logs"], state="disabled", bd=0, padx=12, pady=12,
-                     font=("Menlo", 11), wrap="word")
+                     font=("Menlo", 14), wrap="word")
     colored.append((output, "input"))
     output.pack(fill="both", expand=True)
 
@@ -255,8 +267,9 @@ def launch(root_path, bot_path, tcp_probe):
             elif role == "muted":
                 widget.configure(bg=widget.master.cget("bg"), fg=colors["muted"])
             elif role == "button":
-                widget.configure(bg=colors["panel"], fg=colors["accent"],
-                                 activebackground=colors["input"], activeforeground=colors["fg"])
+                widget.configure(bg=colors["panel"], fg=colors["fg"],
+                                 activebackground=colors["accent"], activeforeground=colors["bg"],
+                                 highlightthickness=1, highlightbackground=colors["input"])
             elif role == "input":
                 widget.configure(bg=colors["input"], fg=colors["fg"],
                                  insertbackground=colors["fg"])
