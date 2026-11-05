@@ -8,6 +8,7 @@ from tkinter import ttk, messagebox
 
 from appearance import DEFAULT_THEME, THEMES, load_theme, save_theme
 from radio_config import read_radio, save_radio
+import radio_probe
 
 
 def launch(root_path, bot_path, tcp_probe):
@@ -17,6 +18,7 @@ def launch(root_path, bot_path, tcp_probe):
     root.minsize(800, 540)
     selected_theme = tk.StringVar(value=load_theme())
     status = tk.StringVar(value="Stopped")
+    radio_status = tk.StringVar(value="Radio not tested yet. Use Connection → Test connection.")
     current_page = tk.StringVar(value="Dashboard")
     config = root_path / "config.ini"
     template = root_path / "config.template"
@@ -84,11 +86,10 @@ def launch(root_path, bot_path, tcp_probe):
     heading(pages["Dashboard"], "System overview",
             "Bot process status and desktop diagnostics")
     label(pages["Dashboard"], variable=status, size=16).pack(anchor="w", pady=12)
-    label(pages["Dashboard"], "A running process does not prove radio connectivity.",
-          muted=True).pack(anchor="w")
+    label(pages["Dashboard"], variable=radio_status, muted=True).pack(anchor="w")
 
     heading(pages["Connection"], "Radio connection",
-            "Select TCP, Bluetooth LE or USB/serial and save before starting")
+            "Select TCP, Bluetooth LE or USB/serial, test it, then save before starting")
     ttk.Combobox(pages["Connection"], textvariable=mode,
                  values=("tcp", "ble", "serial"), state="readonly").pack(anchor="w", pady=10)
     label(pages["Connection"], "Hostname:port, BLE address, or serial device path").pack(anchor="w")
@@ -113,22 +114,39 @@ def launch(root_path, bot_path, tcp_probe):
             messagebox.showerror("Save failed", str(exc))
 
     def test():
-        if mode.get() != "tcp":
-            log("TCP test applies to TCP connections only.")
+        if process[0] is not None and process[0].poll() is None:
+            log("Stop the bot before testing; a radio accepts one client at a time.")
             return
-        address = endpoint.get()
+        transport, address = mode.get(), endpoint.get()
+        log(f"Testing {transport} connection to {address}…")
         def worker():
             try:
-                tcp_probe(address)
-                events.put(("log", f"TCP reachable: {address}; radio handshake unverified"))
-            except (OSError, ValueError) as exc:
-                events.put(("log", f"TCP test failed: {exc}"))
+                if transport == "tcp":
+                    tcp_probe(address)
+                summary = radio_probe.describe(radio_probe.probe(transport, address))
+                events.put(("radio", summary))
+            except Exception as exc:  # radio libraries raise many error types
+                events.put(("log", f"Connection test failed: {type(exc).__name__}: {exc}"))
         threading.Thread(target=worker, daemon=True).start()
+
+    def find_usb():
+        try:
+            ports = radio_probe.serial_ports()
+        except Exception as exc:
+            log(f"USB scan failed: {exc}")
+            return
+        if not ports:
+            log("No USB radios found. Check the cable and that the radio is powered.")
+            return
+        mode.set("serial")
+        endpoint.set(ports[0])
+        log("USB devices found: " + ", ".join(ports) + f". Selected {ports[0]}.")
 
     actions = frame(pages["Connection"], "bg")
     actions.pack(anchor="w")
     button(actions, "Save radio settings", save).pack(side="left", padx=(0, 10))
-    button(actions, "Test TCP", test).pack(side="left")
+    button(actions, "Test connection", test).pack(side="left", padx=(0, 10))
+    button(actions, "Find USB radios", find_usb).pack(side="left")
 
     def start():
         if process[0] is not None and process[0].poll() is None:
@@ -150,10 +168,22 @@ def launch(root_path, bot_path, tcp_probe):
             events.put(("exit", str(child.wait())))
         threading.Thread(target=reader, daemon=True).start()
 
-    def stop():
-        if process[0] is not None and process[0].poll() is None:
-            process[0].terminate()
-            log("Stop requested")
+    def stop(wait=False):
+        child = process[0]
+        if child is None or child.poll() is not None:
+            return
+        child.terminate()
+        log("Stop requested")
+        def ensure_stopped():
+            try:
+                child.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                events.put(("log", "Bot did not stop within 5 seconds; force-stopped."))
+        if wait:
+            ensure_stopped()
+        else:
+            threading.Thread(target=ensure_stopped, daemon=True).start()
 
     heading(pages["Bot Controls"], "Bot controls",
             "Start and stop the original Meshtastic bot")
@@ -217,6 +247,9 @@ def launch(root_path, bot_path, tcp_probe):
                 kind, value = events.get_nowait()
                 if kind == "log":
                     log(value)
+                elif kind == "radio":
+                    log(value)
+                    radio_status.set(value)
                 else:
                     status.set(f"Stopped • exit code {value}")
                     process[0] = None
@@ -225,7 +258,7 @@ def launch(root_path, bot_path, tcp_probe):
         root.after(100, poll)
 
     def close():
-        stop()
+        stop(wait=True)
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", close)

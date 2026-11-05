@@ -7,9 +7,12 @@ Run from the repository root with the bot's Python dependencies installed:
 
     python desktop/launcher.py
 
-The **Test TCP** button checks whether a TCP socket can be opened at port
-4403; it does not confirm a Meshtastic connection. The hostname field is
-only used for this check. **Start bot** runs the existing mesh_bot.py with
+**Test connection** opens a real Meshtastic session over TCP, BLE or USB,
+reads the radio's name, hardware and firmware, then disconnects. Nothing is
+sent on the mesh. Stop the bot first; a radio accepts one client at a time.
+**Find USB radios** fills in the first detected USB serial device.
+
+New installs default to Wi-Fi/TCP at `meshtastic.local`. **Start bot** runs the existing mesh_bot.py with
 its existing configuration and displays its output.
 
 CI runs on an Intel macOS runner and checks Python syntax and the headless

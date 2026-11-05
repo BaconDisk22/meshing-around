@@ -52,7 +52,7 @@ try:
 except Exception as e:
     print(f"\nError importing modules: {e}")
     print("Run this program from the main program directory: python3 script/test_bot.py")
-    exit(1)
+    sys.exit(1)
 
 class TestBot(unittest.TestCase):
     def test_example(self):

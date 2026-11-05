@@ -1,5 +1,6 @@
 # Settings for MeshBot and PongBot
 # 2024 Kelly Keeton K7MHI
+import sys
 import configparser
 
 # messages
@@ -74,7 +75,7 @@ except Exception as e:
     # exit if we can't read the config file
     print(f"System: Check the config.ini against config.template file for missing sections or values.")
     print(f"System: Exiting...")
-    exit(1)
+    sys.exit(1)
 
 if config.sections() == []:
     print(f"System: Error reading config file: {config_file} is empty or does not exist.")
@@ -540,4 +541,4 @@ except Exception as e:
     print(f"System: Error reading config file: {e}")
     print("System: Check the config.ini against config.template file for missing sections or values.")
     print("System: Exiting...")
-    exit(1)
+    sys.exit(1)
