@@ -29,6 +29,7 @@ def launch(root_path, bot_path, tcp_probe):
     transport, address = read_radio(config if config.exists() else template)
     mode = tk.StringVar(value=transport)
     endpoint = tk.StringVar(value=address or "meshtastic.local")
+    saved_radio = [(transport, address or "meshtastic.local")]
     events = queue.Queue()
     process = [None]
     probe_active = [False]
@@ -147,6 +148,7 @@ def launch(root_path, bot_path, tcp_probe):
             return
         try:
             save_radio(config, template, mode.get(), endpoint.get())
+            saved_radio[0] = (mode.get(), endpoint.get())
             radio_status.set("Radio settings changed • connection not verified")
             log("Radio settings saved. A backup is kept for existing configurations.")
         except (OSError, ValueError) as exc:
@@ -194,6 +196,10 @@ def launch(root_path, bot_path, tcp_probe):
     button(actions, "Find USB radios", find_usb).pack(side="left")
 
     def start():
+        if (mode.get(), endpoint.get()) != saved_radio[0]:
+            messagebox.showwarning("Unsaved radio settings",
+                                   "Save your radio settings before starting the bot.")
+            return
         if closing[0] or stopping[0]:
             log("Wait for the previous bot to finish stopping before restarting.")
             return
