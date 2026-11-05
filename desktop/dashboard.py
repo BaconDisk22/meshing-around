@@ -19,6 +19,7 @@ def launch(root_path, bot_path, tcp_probe):
     selected_theme = tk.StringVar(value=load_theme())
     status = tk.StringVar(value="Stopped")
     radio_status = tk.StringVar(value="Radio not tested yet. Use Connection → Test connection.")
+    last_event = tk.StringVar(value="No radio events yet")
     current_page = tk.StringVar(value="Dashboard")
     config = root_path / "config.ini"
     template = root_path / "config.template"
@@ -91,6 +92,7 @@ def launch(root_path, bot_path, tcp_probe):
             "Bot process status and desktop diagnostics")
     label(pages["Dashboard"], variable=status, size=16).pack(anchor="w", pady=12)
     label(pages["Dashboard"], variable=radio_status, muted=True).pack(anchor="w")
+    label(pages["Dashboard"], variable=last_event, muted=True).pack(anchor="w", pady=8)
 
     heading(pages["Connection"], "Radio connection",
             "Select TCP, Bluetooth LE or USB/serial, test it, then save before starting")
@@ -271,6 +273,10 @@ def launch(root_path, bot_path, tcp_probe):
                 kind, value = events.get_nowait()
                 if kind == "log":
                     log(value)
+                    if "disconnect" in value.lower() or "connection lost" in value.lower():
+                        last_event.set("Radio disconnected • check Logs for recovery details")
+                    elif "reconnect" in value.lower() and ("success" in value.lower() or "connected" in value.lower()):
+                        last_event.set("Radio reconnect reported • verify connection")
                 elif kind == "close":
                     root.destroy()
                     return
