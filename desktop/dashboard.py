@@ -265,6 +265,30 @@ def launch(root_path, bot_path, tcp_probe):
     colored.append((output, "input"))
     output.pack(fill="both", expand=True)
 
+    search_bar = frame(pages["Logs"], "bg")
+    search_bar.pack(fill="x", pady=(8, 0))
+    label(search_bar, "Find in logs", muted=True).pack(side="left", padx=(0, 12))
+    search_text = tk.StringVar()
+    search_entry = tk.Entry(search_bar, textvariable=search_text, font=("Helvetica Neue", 14))
+    colored.append((search_entry, "input"))
+    search_entry.pack(side="left", fill="x", expand=True)
+
+    def find_log():
+        output.tag_remove("search_hit", "1.0", "end")
+        query = search_text.get().strip()
+        if not query:
+            return
+        index = output.search(query, "1.0", stopindex="end", nocase=True)
+        if index:
+            end = f"{index}+{len(query)}c"
+            output.tag_add("search_hit", index, end)
+            output.tag_configure("search_hit", background="#ffd166", foreground="#151b26")
+            output.see(index)
+        else:
+            messagebox.showinfo("Search logs", "No matching log entry found.")
+
+    button(search_bar, "Find", find_log).pack(side="left", padx=(10, 0))
+
     def save_logs():
         try:
             target = export_logs(Path.home() / "Documents" / "Meshing Around Logs", output.get("1.0", "end-1c"))
