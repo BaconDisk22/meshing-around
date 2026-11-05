@@ -247,7 +247,8 @@ def launch(root_path, bot_path, tcp_probe):
     button(actions, "Start bot", start).pack(side="left", padx=(0, 10))
     button(actions, "Stop bot", stop).pack(side="left")
 
-    label(pages["Logs"], "Bot output and diagnostics", muted=True).pack(anchor="w", pady=(0, 10))
+    heading(pages["Logs"], "Live diagnostics",
+            "Review recent bot output and export a copy when troubleshooting")
     output = tk.Text(pages["Logs"], state="disabled", bd=0, padx=12, pady=12,
                      font=("Menlo", 14), wrap="word")
     colored.append((output, "input"))
@@ -260,12 +261,21 @@ def launch(root_path, bot_path, tcp_probe):
         except OSError as exc:
             messagebox.showerror("Log export failed", str(exc))
 
-    button(pages["Logs"], "Export logs", save_logs).pack(anchor="w", pady=8)
+    logs_actions = frame(pages["Logs"], "bg")
+    logs_actions.pack(fill="x", pady=(10, 0))
+    button(logs_actions, "Export logs", save_logs).pack(side="left", padx=(0, 12))
+    def clear_logs():
+        output.configure(state="normal")
+        output.delete("1.0", "end")
+        output.configure(state="disabled")
+    button(logs_actions, "Clear visible logs", clear_logs).pack(side="left")
 
     heading(pages["Settings"], "Appearance",
             "Choose a color theme; your selection persists across restarts")
+    label(pages["Settings"], "COLOR THEME", size=11, muted=True).pack(anchor="w", pady=(8, 8))
     ttk.Combobox(pages["Settings"], textvariable=selected_theme,
-                 values=tuple(THEMES), state="readonly", width=26).pack(anchor="w", pady=10)
+                 values=tuple(THEMES), state="readonly", width=30,
+                 font=("Helvetica Neue", 14)).pack(anchor="w", pady=(0, 16))
 
     def apply_theme(persist=False):
         colors = THEMES[selected_theme.get()]
