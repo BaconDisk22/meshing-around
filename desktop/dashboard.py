@@ -111,10 +111,14 @@ def launch(root_path, bot_path, tcp_probe):
 
     heading(pages["Connection"], "Radio connection",
             "Select TCP, Bluetooth LE or USB/serial, test it, then save before starting")
-    ttk.Combobox(pages["Connection"], textvariable=mode,
-                 values=("tcp", "ble", "serial"), state="readonly").pack(anchor="w", pady=10)
-    label(pages["Connection"], "Hostname:port, BLE address, or serial device path").pack(anchor="w")
-    entry = tk.Entry(pages["Connection"], textvariable=endpoint, bd=6, relief="flat")
+    label(pages["Connection"], "CONNECTION TYPE", size=11, muted=True).pack(anchor="w", pady=(4, 6))
+    ttk.Combobox(pages["Connection"], textvariable=mode, width=28,
+                 values=("tcp", "ble", "serial"), state="readonly",
+                 font=("Helvetica Neue", 14)).pack(anchor="w", pady=(0, 18))
+    label(pages["Connection"], "RADIO ADDRESS", size=11, muted=True).pack(anchor="w")
+    label(pages["Connection"], "TCP: hostname:4403  •  BLE: device address  •  USB: serial path", muted=True).pack(anchor="w", pady=(4, 8))
+    entry = tk.Entry(pages["Connection"], textvariable=endpoint, bd=8, relief="flat",
+                     font=("Helvetica Neue", 15))
     colored.append((entry, "input"))
     entry.pack(fill="x", pady=(8, 20))
 
@@ -175,7 +179,7 @@ def launch(root_path, bot_path, tcp_probe):
         log("USB devices found: " + ", ".join(ports) + f". Selected {ports[0]}.")
 
     actions = frame(pages["Connection"], "bg")
-    actions.pack(anchor="w")
+    actions.pack(anchor="w", pady=(12, 0))
     button(actions, "Save radio settings", save).pack(side="left", padx=(0, 10))
     button(actions, "Test connection", test).pack(side="left", padx=(0, 10))
     button(actions, "Find USB radios", find_usb).pack(side="left")
