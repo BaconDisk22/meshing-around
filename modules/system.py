@@ -2340,17 +2340,19 @@ async def retry_interface(nodeID):
         logger.critical(f"System: dont_retry_disconnect is set, not retrying interface{nodeID}")
         exit_handler()
 
+    # Count every attempt, including failures that left the interface as None.
+    # Otherwise an offline TCP radio can cause an endless retry loop.
+    globals()[f'retry_int{nodeID}'] = True
+    globals()[f'max_retry_count{nodeID}'] -= 1
+    logger.debug(f"System: Retrying interface{nodeID} {globals()[f'max_retry_count{nodeID}']} attempts left")
     if interface is not None:
-        globals()[f'retry_int{nodeID}'] = True
-        globals()[f'max_retry_count{nodeID}'] -= 1
-        logger.debug(f"System: Retrying interface{nodeID} {globals()[f'max_retry_count{nodeID}']} attempts left")
         try:
             interface.close()
             logger.debug(f"System: Retrying interface{nodeID} in 15 seconds")
         except Exception as e:
             logger.error(f"System: closing interface{nodeID}: {e}")
 
-    if globals()[f'max_retry_count{nodeID}'] == 0:
+    if globals()[f'max_retry_count{nodeID}'] <= 0:
         logger.critical(f"System: Max retry count reached for interface{nodeID}")
         exit_handler()
 
@@ -2380,6 +2382,8 @@ async def retry_interface(nodeID):
             elif interface_type == 'ble':
                 logger.debug(f"System: Retrying Interface{nodeID} BLE on mac: {globals().get(f'mac{nodeID}')}")
                 globals()[f'interface{nodeID}'] = meshtastic.ble_interface.BLEInterface(globals().get(f'mac{nodeID}'))
+            if globals()[f'interface{nodeID}'] is None:
+                raise ConnectionError(f"Unsupported interface type for interface{nodeID}: {interface_type}")
             logger.debug(f"System: Interface{nodeID} Opened!")
             # reset the retry_int and retry_count
             globals()[f'max_retry_count{nodeID}'] = interface_retry_count
