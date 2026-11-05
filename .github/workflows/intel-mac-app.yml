@@ -89,6 +89,18 @@ jobs:
           test "$bot_code" = 1
           grep -q 'abort. Initializing Interface1' bot.log
           ! grep -q 'Failed to execute script' bot.log
+      - name: Capture dashboard screenshot (best effort)
+        continue-on-error: true
+        run: |
+          mkdir -p screenshots
+          python desktop/capture_dashboard.py screenshots/desktop-dashboard.png
+      - name: Upload dashboard screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-screenshot
+          path: screenshots/desktop-dashboard.png
+          if-no-files-found: ignore
       - name: Package DMG
         run: |
           mkdir -p dmg-stage
