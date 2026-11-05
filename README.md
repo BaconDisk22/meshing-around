@@ -1,4 +1,43 @@
-# Mesh Bot for Network Testing and BBS Activities
+# Meshing Around — Meshtastic Bot & Intel Mac Desktop
+
+This BaconDisk22 fork combines the existing feature-rich Meshtastic bot with a five-page desktop control center for Intel Macs. The original bot features and module documentation remain available below.
+
+## Intel Mac desktop beta
+
+The desktop application provides **Dashboard**, **Connection**, **Bot Controls**, **Logs**, and **Settings** pages, with larger readable typography and selectable themes.
+
+- **Connection:** Configure Wi-Fi/TCP, Bluetooth LE, or USB/serial radio access; test the radio before running the bot. Wi-Fi/TCP defaults to `meshtastic.local`; you can enter a host and port such as `192.168.1.50:4403`.
+- **Dashboard:** View bot status, radio test results, recent activity, and quick navigation.
+- **Bot Controls:** Start or stop the existing bot process and monitor its status.
+- **Logs:** Inspect bot output, export diagnostic logs, and clear the visible log. Log search is being developed in [PR #36](https://github.com/BaconDisk22/meshing-around/pull/36).
+- **Settings:** Choose and save a desktop color theme.
+
+### Download and run
+
+1. Open [GitHub Actions — Intel Mac app and DMG (beta)](https://github.com/BaconDisk22/meshing-around/actions/workflows/intel-mac-app.yml) and select a **successful** run on `main`.
+2. Under **Artifacts**, download `meshing-around-intel-mac-beta` while it is retained. The archive includes the Intel Mac application and DMG.
+3. Open the DMG, move the app to Applications, and launch it. If macOS blocks the unsigned beta, use **Control-click → Open** and confirm only if you trust the build.
+4. Configure your radio in **Connection**, save settings, and test the connection before starting the bot.
+
+This is a **beta**, not a confirmed hardware-validated release. Build and headless smoke tests do not guarantee live radio connectivity. Do not connect multiple clients to the same radio simultaneously.
+
+### Screenshots
+
+The screenshot capture job is currently **best effort**. If a workflow run contains a `dashboard-screenshot` artifact, it may be downloaded from that run. A verified desktop screenshot will be embedded here once capture succeeds and the image is reviewed. No mockup is presented as a real app screenshot.
+
+### Development and testing
+
+Run the desktop launcher from the repository root after installing the bot dependencies:
+
+```bash
+python desktop/launcher.py
+```
+
+Read the [desktop guide](desktop/README.md), [packaging notes](desktop/MAC_PACKAGING.md), and [release readiness checklist](docs/RELEASE_READINESS.md). The upstream bot's features, configuration guides, and acknowledgements follow.
+
+---
+
+## Original bot features and documentation
 
 Mesh Bot is a feature-rich Python bot designed to enhance your [Meshtastic](https://meshtastic.org/docs/introduction/) network experience. It provides powerful tools for network testing, messaging, games, and more! All via text-based message delivery. Whether you want to test your mesh, send messages, or play games, [mesh_bot.py](mesh_bot.py) has you covered.
 
