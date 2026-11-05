@@ -30,6 +30,7 @@ def launch(root_path, bot_path, tcp_probe):
     probe_active = [False]
     probe_settings = [None]
     closing = [False]
+    stopping = [False]
     colored = []
     pages = {}
     nav_buttons = []
@@ -159,6 +160,9 @@ def launch(root_path, bot_path, tcp_probe):
     button(actions, "Find USB radios", find_usb).pack(side="left")
 
     def start():
+        if closing[0] or stopping[0]:
+            log("Wait for the previous bot to finish stopping before restarting.")
+            return
         if process[0] is not None and process[0].poll() is None:
             return
         if probe_active[0]:
@@ -185,6 +189,9 @@ def launch(root_path, bot_path, tcp_probe):
         child = process[0]
         if child is None or child.poll() is not None:
             return
+        if stopping[0]:
+            return
+        stopping[0] = True
         child.terminate()
         log("Stop requested")
         def ensure_stopped():
@@ -280,6 +287,7 @@ def launch(root_path, bot_path, tcp_probe):
                 elif kind == "exit":
                     child, code = value
                     if process[0] is child:
+                        stopping[0] = False
                         status.set(f"Stopped • exit code {code}")
                         process[0] = None
         except queue.Empty:
