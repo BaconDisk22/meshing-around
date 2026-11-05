@@ -241,11 +241,16 @@ def launch(root_path, bot_path, tcp_probe):
             threading.Thread(target=ensure_stopped, daemon=True).start()
 
     heading(pages["Bot Controls"], "Bot controls",
-            "Start and stop the original Meshtastic bot")
+            "Manage the bot process without interrupting the desktop interface")
+    bot_panel = frame(pages["Bot Controls"])
+    bot_panel.pack(fill="x", pady=(0, 18))
+    label(bot_panel, "PROCESS STATUS", size=11, muted=True).pack(anchor="w", padx=20, pady=(18, 6))
+    label(bot_panel, variable=status, size=17).pack(anchor="w", padx=20, pady=(0, 18))
     actions = frame(pages["Bot Controls"], "bg")
-    actions.pack(anchor="w")
-    button(actions, "Start bot", start).pack(side="left", padx=(0, 10))
+    actions.pack(anchor="w", pady=(8, 16))
+    button(actions, "Start bot", start).pack(side="left", padx=(0, 14))
     button(actions, "Stop bot", stop).pack(side="left")
+    label(pages["Bot Controls"], "Starting uses your saved radio settings. Stop the bot before testing or editing the radio.", muted=True).pack(anchor="w", pady=(4, 12))
 
     label(pages["Logs"], "Bot output and diagnostics", muted=True).pack(anchor="w", pady=(0, 10))
     output = tk.Text(pages["Logs"], state="disabled", bd=0, padx=12, pady=12,
