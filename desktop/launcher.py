@@ -17,8 +17,11 @@ def check_tcp(host: str, port: int = 4403) -> bool:
         host, port = name, int(number)
     if not host or not 1 <= port <= 65535:
         raise ValueError("Invalid host or port")
-    with socket.create_connection((host, port), timeout=4):
-        return True
+    try:
+        with socket.create_connection((host, port), timeout=4):
+            return True
+    except socket.timeout as exc:
+        raise TimeoutError(f"TCP connection to {host}:{port} timed out after 4 seconds") from exc
 
 
 def main() -> None:
