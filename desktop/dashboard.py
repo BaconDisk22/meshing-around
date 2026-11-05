@@ -103,6 +103,10 @@ def launch(root_path, bot_path, tcp_probe):
     def log(message):
         output.configure(state="normal")
         output.insert("end", message.rstrip() + "\n")
+        # Bound memory usage during long-running sessions with verbose bot logs.
+        line_count = int(output.index("end-1c").split(".")[0])
+        if line_count > 5000:
+            output.delete("1.0", f"{line_count - 4000}.0")
         output.see("end")
         output.configure(state="disabled")
 
