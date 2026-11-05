@@ -26,6 +26,10 @@ def validate(mode: str, endpoint: str) -> tuple[str, str]:
                 raise ValueError("TCP port must be 1-65535")
         elif ":" in endpoint:
             raise ValueError("Use hostname or hostname:port")
+        if endpoint.startswith(":") or endpoint.endswith(":"):
+            raise ValueError("TCP hostname and port must not be empty")
+        if any(char in endpoint for char in ("/", "\\", "@", "#")):
+            raise ValueError("Use a TCP hostname or IP address, not a URL or path")
         if any(char.isspace() for char in endpoint):
             raise ValueError("TCP hostname must not contain whitespace")
     return mode, endpoint
