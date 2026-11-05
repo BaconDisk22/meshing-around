@@ -282,10 +282,7 @@ def launch(root_path, bot_path, tcp_probe):
                     process[0] = None
         except queue.Empty:
             pass
-        if not closing[0]:
-            root.after(100, poll)
-        else:
-            root.after(100, poll)
+        root.after(100, poll)
 
     def close():
         if closing[0]:
@@ -293,8 +290,17 @@ def launch(root_path, bot_path, tcp_probe):
         closing[0] = True
         status.set("Stopping bot…")
         # Waiting on the UI thread freezes the window during slow shutdown.
+        child = process[0]
         def shutdown():
-            stop(wait=True)
+            if child is not None and child.poll() is None:
+                try:
+                    child.terminate()
+                    child.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    child.wait()
+                except OSError as exc:
+                    events.put(("log", f"Shutdown error: {exc}"))
             events.put(("close", None))
         threading.Thread(target=shutdown, daemon=True).start()
 
