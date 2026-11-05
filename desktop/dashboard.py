@@ -177,7 +177,7 @@ def launch(root_path, bot_path, tcp_probe):
         def reader():
             for line in child.stdout:
                 events.put(("log", line))
-            events.put(("exit", str(child.wait())))
+            events.put(("exit", (child, child.wait())))
         threading.Thread(target=reader, daemon=True).start()
 
     def stop(wait=False):
@@ -273,9 +273,11 @@ def launch(root_path, bot_path, tcp_probe):
                         radio_status.set(value)
                     else:
                         radio_status.set("Radio settings changed • test again")
-                else:
-                    status.set(f"Stopped • exit code {value}")
-                    process[0] = None
+                elif kind == "exit":
+                    child, code = value
+                    if process[0] is child:
+                        status.set(f"Stopped • exit code {code}")
+                        process[0] = None
         except queue.Empty:
             pass
         root.after(100, poll)
