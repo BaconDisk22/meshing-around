@@ -109,6 +109,15 @@ def launch(root_path, bot_path, tcp_probe):
     status_card("RADIO CONNECTION", radio_status)
     status_card("RECENT ACTIVITY", last_event)
 
+    quick_actions = frame(pages["Dashboard"], "bg")
+    quick_actions.pack(fill="x", pady=(18, 8))
+    label(quick_actions, "QUICK NAVIGATION", size=11, muted=True).pack(anchor="w", pady=(0, 10))
+    quick_buttons = frame(quick_actions, "bg")
+    quick_buttons.pack(anchor="w")
+    button(quick_buttons, "Radio setup", lambda: show("Connection")).pack(side="left", padx=(0, 12))
+    button(quick_buttons, "Bot controls", lambda: show("Bot Controls")).pack(side="left", padx=(0, 12))
+    button(quick_buttons, "View logs", lambda: show("Logs")).pack(side="left")
+
     heading(pages["Connection"], "Radio connection",
             "Select TCP, Bluetooth LE or USB/serial, test it, then save before starting")
     label(pages["Connection"], "CONNECTION TYPE", size=11, muted=True).pack(anchor="w", pady=(4, 6))
