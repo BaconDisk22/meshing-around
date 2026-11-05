@@ -23,6 +23,8 @@ This is a **beta**, not a confirmed hardware-validated release. Build and headle
 
 ### Screenshots
 
+See the [real screenshot capture and review guide](docs/SCREENSHOTS.md) for automated and manual capture, privacy checks, and the five-page gallery plan.
+
 The screenshot capture job is currently **best effort**. If a workflow run contains a `dashboard-screenshot` artifact, it may be downloaded from that run. A verified desktop screenshot will be embedded here once capture succeeds and the image is reviewed. No mockup is presented as a real app screenshot.
 
 ### Development and testing
