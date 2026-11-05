@@ -10,6 +10,7 @@ from tkinter import ttk, messagebox
 from appearance import DEFAULT_THEME, THEMES, load_theme, save_theme
 from radio_config import read_radio, save_radio
 import radio_probe
+from startup_preflight import check_paths
 from log_export import export_logs
 
 
@@ -177,6 +178,7 @@ def launch(root_path, bot_path, tcp_probe):
             log("Wait for the radio connection test to finish before starting the bot.")
             return
         try:
+            check_paths(root_path, bot_path)
             command = [str(bot_path)] if getattr(sys, "frozen", False) else [sys.executable, "-u", str(bot_path)]
             child = subprocess.Popen(command,
                                      cwd=root_path, stdout=subprocess.PIPE,
