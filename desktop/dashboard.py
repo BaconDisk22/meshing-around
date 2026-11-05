@@ -28,6 +28,7 @@ def launch(root_path, bot_path, tcp_probe):
     events = queue.Queue()
     process = [None]
     probe_active = [False]
+    probe_settings = [None]
     colored = []
     pages = {}
     nav_buttons = []
@@ -123,6 +124,7 @@ def launch(root_path, bot_path, tcp_probe):
             log("A radio connection test is already in progress.")
             return
         transport, address = mode.get(), endpoint.get()
+        probe_settings[0] = (transport, address)
         probe_active[0] = True
         radio_status.set("Testing radio connection…")
         log(f"Testing {transport} connection to {address}…")
@@ -260,11 +262,17 @@ def launch(root_path, bot_path, tcp_probe):
                 elif kind == "radio":
                     probe_active[0] = False
                     log(value)
-                    radio_status.set(value)
+                    if probe_settings[0] == (mode.get(), endpoint.get()):
+                        radio_status.set(value)
+                    else:
+                        radio_status.set("Radio settings changed • test again")
                 elif kind == "radio_error":
                     probe_active[0] = False
                     log(value)
-                    radio_status.set(value)
+                    if probe_settings[0] == (mode.get(), endpoint.get()):
+                        radio_status.set(value)
+                    else:
+                        radio_status.set("Radio settings changed • test again")
                 else:
                     status.set(f"Stopped • exit code {value}")
                     process[0] = None
