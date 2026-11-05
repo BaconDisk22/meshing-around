@@ -25,6 +25,13 @@ class RadioConfigTests(unittest.TestCase):
     def test_tcp_accepts_standard_host_and_port(self):
         self.assertEqual(validate("tcp", "10.0.0.76:4403"), ("tcp", "10.0.0.76:4403"))
 
+    def test_tcp_rejects_url_and_missing_host_or_port(self):
+        for endpoint in (":4403", "radio.local:", "tcp://radio.local:4403",
+                         "radio.local/path", "user@radio.local", "radio.local#tag"):
+            with self.subTest(endpoint=endpoint):
+                with self.assertRaises(ValueError):
+                    validate("tcp", endpoint)
+
     def test_save_preserves_unrelated_settings_and_backup(self):
         with tempfile.TemporaryDirectory() as folder:
             root = pathlib.Path(folder)
