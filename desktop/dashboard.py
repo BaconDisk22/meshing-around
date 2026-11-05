@@ -27,6 +27,7 @@ def launch(root_path, bot_path, tcp_probe):
     endpoint = tk.StringVar(value=address or "meshtastic.local")
     events = queue.Queue()
     process = [None]
+    probe_active = [False]
     colored = []
     pages = {}
     nav_buttons = []
@@ -109,6 +110,7 @@ def launch(root_path, bot_path, tcp_probe):
             return
         try:
             save_radio(config, template, mode.get(), endpoint.get())
+            radio_status.set("Radio settings changed • connection not verified")
             log("Radio settings saved. A backup is kept for existing configurations.")
         except (OSError, ValueError) as exc:
             messagebox.showerror("Save failed", str(exc))
@@ -117,7 +119,12 @@ def launch(root_path, bot_path, tcp_probe):
         if process[0] is not None and process[0].poll() is None:
             log("Stop the bot before testing; a radio accepts one client at a time.")
             return
+        if probe_active[0]:
+            log("A radio connection test is already in progress.")
+            return
         transport, address = mode.get(), endpoint.get()
+        probe_active[0] = True
+        radio_status.set("Testing radio connection…")
         log(f"Testing {transport} connection to {address}…")
         def worker():
             try:
@@ -126,7 +133,7 @@ def launch(root_path, bot_path, tcp_probe):
                 summary = radio_probe.describe(radio_probe.probe(transport, address))
                 events.put(("radio", summary))
             except Exception as exc:  # radio libraries raise many error types
-                events.put(("log", f"Connection test failed: {type(exc).__name__}: {exc}"))
+                events.put(("radio_error", f"Connection test failed: {type(exc).__name__}: {exc}"))
         threading.Thread(target=worker, daemon=True).start()
 
     def find_usb():
@@ -150,6 +157,9 @@ def launch(root_path, bot_path, tcp_probe):
 
     def start():
         if process[0] is not None and process[0].poll() is None:
+            return
+        if probe_active[0]:
+            log("Wait for the radio connection test to finish before starting the bot.")
             return
         try:
             command = [str(bot_path)] if getattr(sys, "frozen", False) else [sys.executable, "-u", str(bot_path)]
@@ -248,6 +258,11 @@ def launch(root_path, bot_path, tcp_probe):
                 if kind == "log":
                     log(value)
                 elif kind == "radio":
+                    probe_active[0] = False
+                    log(value)
+                    radio_status.set(value)
+                elif kind == "radio_error":
+                    probe_active[0] = False
                     log(value)
                     radio_status.set(value)
                 else:
