@@ -3,12 +3,14 @@ import queue
 import subprocess
 import sys
 import threading
+from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
 
 from appearance import DEFAULT_THEME, THEMES, load_theme, save_theme
 from radio_config import read_radio, save_radio
 import radio_probe
+from log_export import export_logs
 
 
 def launch(root_path, bot_path, tcp_probe):
@@ -223,6 +225,15 @@ def launch(root_path, bot_path, tcp_probe):
                      font=("Menlo", 11), wrap="word")
     colored.append((output, "input"))
     output.pack(fill="both", expand=True)
+
+    def save_logs():
+        try:
+            target = export_logs(Path.home() / "Documents" / "Meshing Around Logs", output.get("1.0", "end-1c"))
+            log(f"Exported diagnostics to {target}")
+        except OSError as exc:
+            messagebox.showerror("Log export failed", str(exc))
+
+    button(pages["Logs"], "Export logs", save_logs).pack(anchor="w", pady=8)
 
     heading(pages["Settings"], "Appearance",
             "Choose a color theme; your selection persists across restarts")
