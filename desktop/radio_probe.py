@@ -5,6 +5,8 @@ the radio's node info. Nothing is transmitted on the mesh.
 """
 from __future__ import annotations
 
+import time
+
 from radio_config import validate
 
 TIMEOUT = 20
@@ -49,6 +51,25 @@ def probe(mode: str, endpoint: str) -> dict:
     finally:
         interface.close()
 
+
+def probe_with_retry(mode: str, endpoint: str, attempts: int = 2, delay: float = 0.5) -> dict:
+    """Retry a failed TCP handshake once; never retry non-TCP transports.
+
+    A successful probe always closes its interface before returning. This helper
+    does not reconnect a running bot or send mesh packets.
+    """
+    if attempts < 1 or delay < 0:
+        raise ValueError("Retry attempts must be positive and delay nonnegative")
+    mode, endpoint = validate(mode, endpoint)
+    total = attempts if mode == "tcp" else 1
+    for attempt in range(total):
+        try:
+            return probe(mode, endpoint)
+        except (OSError, ConnectionError, TimeoutError):
+            if attempt + 1 == total:
+                raise
+            time.sleep(delay)
+    raise AssertionError("Unreachable retry state")
 
 def describe(result: dict) -> str:
     return (f"Connected to {result['long_name']} ({result['short_name']}) • "

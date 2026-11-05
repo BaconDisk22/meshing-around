@@ -130,7 +130,7 @@ def launch(root_path, bot_path, tcp_probe):
             try:
                 if transport == "tcp":
                     tcp_probe(address)
-                summary = radio_probe.describe(radio_probe.probe(transport, address))
+                summary = radio_probe.describe(radio_probe.probe_with_retry(transport, address))
                 events.put(("radio", summary))
             except Exception as exc:  # radio libraries raise many error types
                 events.put(("radio_error", f"Connection test failed: {type(exc).__name__}: {exc}"))
