@@ -131,6 +131,17 @@ def launch(root_path, bot_path, tcp_probe):
                      font=("Helvetica Neue", 15))
     colored.append((entry, "input"))
     entry.pack(fill="x", pady=(8, 20))
+    unsaved_notice = tk.StringVar(value="Radio settings saved")
+    label(pages["Connection"], variable=unsaved_notice, muted=True).pack(anchor="w", pady=(0, 12))
+
+    def refresh_radio_notice(*_args):
+        changed = (mode.get(), endpoint.get()) != saved_radio[0]
+        unsaved_notice.set("Unsaved changes — save before starting the bot" if changed
+                           else "Radio settings saved")
+
+    mode.trace_add("write", refresh_radio_notice)
+    endpoint.trace_add("write", refresh_radio_notice)
+
 
     def log(message):
         output.configure(state="normal")
@@ -149,6 +160,7 @@ def launch(root_path, bot_path, tcp_probe):
         try:
             save_radio(config, template, mode.get(), endpoint.get())
             saved_radio[0] = (mode.get(), endpoint.get())
+            refresh_radio_notice()
             radio_status.set("Radio settings changed • connection not verified")
             log("Radio settings saved. A backup is kept for existing configurations.")
         except (OSError, ValueError) as exc:
