@@ -9,7 +9,23 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import struct
 import time
+
+
+def valid_png(path: Path) -> bool:
+    """Check PNG signature, IHDR and reasonable dimensions without dependencies."""
+    try:
+        with path.open("rb") as stream:
+            header = stream.read(24)
+        if len(header) != 24 or header[:8] != b"\\x89PNG\\r\\n\\x1a\\n":
+            return False
+        if header[12:16] != b"IHDR":
+            return False
+        width, height = struct.unpack(">II", header[16:24])
+        return width >= 640 and height >= 480
+    except OSError:
+        return False
 
 
 def capture(target: Path) -> int:
@@ -29,7 +45,7 @@ def capture(target: Path) -> int:
             return 3
         result = subprocess.run(["screencapture", "-x", str(target)],
                                 capture_output=True, text=True, timeout=20)
-        if result.returncode or not target.is_file() or target.stat().st_size < 1000:
+        if result.returncode or not target.is_file() or target.stat().st_size < 1000 or not valid_png(target):
             target.unlink(missing_ok=True)
             print("No usable macOS screenshot: " + result.stderr.strip(), file=sys.stderr)
             return 4
