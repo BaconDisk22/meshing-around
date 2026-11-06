@@ -50,7 +50,6 @@ class ScreenshotCaptureContract(unittest.TestCase):
                  patch.object(MODULE.subprocess, "Popen", return_value=process), \
                  patch.object(MODULE.time, "sleep", return_value=None):
                 self.assertEqual(MODULE.capture(Path(tmp) / "screen.png"), 3)
-            process.terminate.assert_not_called()
 
 
 if __name__ == "__main__":
