@@ -40,5 +40,17 @@ class ScreenshotCaptureContract(unittest.TestCase):
             self.assertFalse(MODULE.valid_png(Path(tmp) / "missing.png"))
 
 
+    def test_capture_fails_when_desktop_exits_early(self):
+        from unittest.mock import patch, MagicMock
+        with tempfile.TemporaryDirectory() as tmp:
+            process = MagicMock()
+            process.poll.return_value = 1
+            process.wait.return_value = 1
+            with patch.object(MODULE.sys, "platform", "darwin"), \
+                 patch.object(MODULE.subprocess, "Popen", return_value=process), \
+                 patch.object(MODULE.time, "sleep", return_value=None):
+                self.assertEqual(MODULE.capture(Path(tmp) / "screen.png"), 3)
+
+
 if __name__ == "__main__":
     unittest.main()
