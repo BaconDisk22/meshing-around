@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'desktop/**'
+      - 'tests/test_screenshot_capture.py'
       - 'mesh_bot.py'
       - 'modules/**'
       - 'requirements.txt'
