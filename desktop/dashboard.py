@@ -314,6 +314,17 @@ def launch(root_path, bot_path, tcp_probe):
     button(search_bar, "Find next", find_log).pack(side="left", padx=(10, 0))
     search_entry.bind("<Return>", lambda event: find_log())
 
+    def reset_log_search():
+        search_text.set("")
+        search_position[0] = "1.0"
+        previous_query[0] = ""
+        output.tag_remove("search_hit", "1.0", "end")
+        search_entry.focus_set()
+
+    button(search_bar, "Reset", reset_log_search).pack(side="left", padx=(10, 0))
+    search_entry.bind("<Escape>", lambda event: reset_log_search())
+
+
     def save_logs():
         try:
             target = export_logs(Path.home() / "Documents" / "Meshing Around Logs", output.get("1.0", "end-1c"))
