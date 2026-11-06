@@ -273,21 +273,34 @@ def launch(root_path, bot_path, tcp_probe):
     colored.append((search_entry, "input"))
     search_entry.pack(side="left", fill="x", expand=True)
 
+    search_position = ["1.0"]
+    previous_query = [""]
+
     def find_log():
         output.tag_remove("search_hit", "1.0", "end")
         query = search_text.get().strip()
         if not query:
+            search_position[0] = "1.0"
+            previous_query[0] = ""
             return
-        index = output.search(query, "1.0", stopindex="end", nocase=True)
+        if query != previous_query[0]:
+            search_position[0] = "1.0"
+            previous_query[0] = query
+        index = output.search(query, search_position[0], stopindex="end", nocase=True)
+        if not index:
+            index = output.search(query, "1.0", stopindex="end", nocase=True)
         if index:
             end = f"{index}+{len(query)}c"
             output.tag_add("search_hit", index, end)
             output.tag_configure("search_hit", background="#ffd166", foreground="#151b26")
             output.see(index)
+            search_position[0] = end
         else:
+            search_position[0] = "1.0"
             messagebox.showinfo("Search logs", "No matching log entry found.")
 
-    button(search_bar, "Find", find_log).pack(side="left", padx=(10, 0))
+    button(search_bar, "Find next", find_log).pack(side="left", padx=(10, 0))
+    search_entry.bind("<Return>", lambda event: find_log())
 
     def save_logs():
         try:
