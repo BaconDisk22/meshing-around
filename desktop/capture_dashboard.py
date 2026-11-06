@@ -18,7 +18,7 @@ def valid_png(path: Path) -> bool:
     try:
         with path.open("rb") as stream:
             header = stream.read(24)
-        if len(header) != 24 or header[:8] != b"\\x89PNG\\r\\n\\x1a\\n":
+        if len(header) != 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
             return False
         if header[12:16] != b"IHDR":
             return False
