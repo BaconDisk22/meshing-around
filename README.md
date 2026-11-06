@@ -9,7 +9,7 @@ The desktop application provides **Dashboard**, **Connection**, **Bot Controls**
 - **Connection:** Configure Wi-Fi/TCP, Bluetooth LE, or USB/serial radio access; test the radio before running the bot. Wi-Fi/TCP defaults to `meshtastic.local`; you can enter a host and port such as `192.168.1.50:4403`.
 - **Dashboard:** View bot status, radio test results, recent activity, and quick navigation.
 - **Bot Controls:** Start or stop the existing bot process and monitor its status.
-- **Logs:** Inspect bot output, export diagnostic logs, and clear the visible log. Log search is being developed in [PR #36](https://github.com/BaconDisk22/meshing-around/pull/36).
+- **Logs:** Inspect bot output, export diagnostic logs, and clear the visible log. Search the logs, export diagnostics, and clear the visible log.
 - **Settings:** Choose and save a desktop color theme.
 
 ### Download and run
@@ -25,7 +25,7 @@ This is a **beta**, not a confirmed hardware-validated release. Build and headle
 
 See the [real screenshot capture and review guide](docs/SCREENSHOTS.md) for automated and manual capture, privacy checks, and the five-page gallery plan.
 
-The screenshot capture job is currently **best effort**. If a workflow run contains a `dashboard-screenshot` artifact, it may be downloaded from that run. A verified desktop screenshot will be embedded here once capture succeeds and the image is reviewed. No mockup is presented as a real app screenshot.
+A recent [successful Intel Mac workflow run](https://github.com/BaconDisk22/meshing-around/actions/runs/42115639925) produced a `dashboard-screenshot` artifact. The image still needs manual review for visual correctness and private information before embedding in this README.\n\nThe screenshot capture job is currently **best effort**. If a workflow run contains a `dashboard-screenshot` artifact, it may be downloaded from that run. A verified desktop screenshot will be embedded here once capture succeeds and the image is reviewed. No mockup is presented as a real app screenshot.
 
 ### Development and testing
 
