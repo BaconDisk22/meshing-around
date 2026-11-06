@@ -37,7 +37,7 @@ def capture(target: Path) -> int:
     target.parent.mkdir(parents=True, exist_ok=True)
     launcher = Path(__file__).with_name("launcher.py")
     proc = subprocess.Popen([sys.executable, str(launcher)], cwd=launcher.parent.parent,
-                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         time.sleep(6)
         if proc.poll() is not None:
@@ -52,7 +52,8 @@ def capture(target: Path) -> int:
         print(f"Captured real desktop screen: {target}")
         return 0
     finally:
-        proc.terminate()
+        if proc.poll() is None:
+            proc.terminate()
         try:
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
