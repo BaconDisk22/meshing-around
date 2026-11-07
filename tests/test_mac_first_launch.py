@@ -47,6 +47,18 @@ class MacFirstLaunchTests(unittest.TestCase):
             config.write_text(mac_defaults(template.read_text(encoding="utf-8")))
             self.assertEqual(read_radio(config), ("tcp", "meshtastic.local"))
 
+    def test_first_config_disables_unprompted_broadcasts(self):
+        import configparser
+        from mac_app import mac_defaults
+        template = pathlib.Path(__file__).resolve().parents[1] / "config.template"
+        config = configparser.ConfigParser(interpolation=None)
+        config.read_string(mac_defaults(template.read_text(encoding="utf-8")))
+        self.assertFalse(config.getboolean("sentry", "SentryEnabled"))
+        self.assertFalse(config.getboolean("sentry", "highFlyingAlert"))
+        self.assertFalse(config.getboolean("location", "ipawsAlertEnabled"))
+        # Unrelated settings in the same sections are untouched.
+        self.assertTrue(config.getboolean("location", "enabled"))
+
     def test_fails_if_bot_missing(self):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)

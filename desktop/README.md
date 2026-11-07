@@ -20,6 +20,13 @@ python desktop/launcher.py
 
 The default Wi-Fi/TCP address is `meshtastic.local`. You can specify a reachable radio host and port (for example `192.168.1.50:4403`). The app also supports BLE and USB/serial selection, subject to hardware and platform compatibility.
 
+New installs start with unprompted channel broadcasts switched off: Sentry
+proximity alerts (`SentryEnabled`), high-altitude node alerts
+(`highFlyingAlert`) and iPAWS emergency alerts (`ipawsAlertEnabled`). The bot
+still answers direct messages. To turn any of these on, set it to `True` in
+`~/Library/Application Support/MeshingAround/runtime/config.ini`. Existing
+configurations are never changed.
+
 ## Intel Mac build
 
 The [Intel Mac workflow](../.github/workflows/intel-mac-app.yml) builds an x86_64 `.app` and `.dmg` on a macOS Intel runner, runs automated checks, and uploads the `meshing-around-intel-mac-beta` artifact. The beta is not notarized. See [MAC_PACKAGING.md](MAC_PACKAGING.md) and [BETA_RELEASE.md](BETA_RELEASE.md).
