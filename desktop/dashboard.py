@@ -737,8 +737,6 @@ class DesktopApp:
         self.match_label.pack(side="left", padx=(SPACE["m"], 0))
         Button(bar, t, "Clear…", self.clear_activity, "danger").pack(side="right")
         Button(bar, t, "Export…", self.export_activity).pack(side="right", padx=(0, SPACE["s"]))
-        Toggle(bar, t, "Follow new output", self.follow,
-               lambda on: self.output.see("end") if on else None).pack(side="right", padx=(0, SPACE["l"]))
 
         frame = surface(page, t, "field", border=True)
         frame.pack(fill="both", expand=True)
@@ -757,8 +755,12 @@ class DesktopApp:
         text(self.empty_state, t, "Bot output and connection tests appear here as they happen.",
              style="callout", tone="text_secondary", justify="center").pack()
         self.empty_state.place(relx=0.5, rely=0.42, anchor="center")
-        self.line_count = text(page, t, "", style="callout", tone="text_secondary")
-        self.line_count.pack(fill="x", pady=(SPACE["s"], 0))
+        footer = surface(page, t, "background")
+        footer.pack(fill="x", pady=(SPACE["s"], 0))
+        self.line_count = text(footer, t, "", style="callout", tone="text_secondary")
+        self.line_count.pack(side="left")
+        Toggle(footer, t, "Follow new output", self.follow,
+               lambda on: self.output.see("end") if on else None).pack(side="right")
         t.listen(self._paint_log)
 
     def _paint_log(self, theme):
@@ -790,7 +792,7 @@ class DesktopApp:
             out.see("end")
         out.configure(state="disabled")
         self.log_version += 1
-        if count and self.empty_state.winfo_ismapped():
+        if count and self.empty_state.winfo_manager():
             self.empty_state.place_forget()
         self.line_count.configure(text=f"{count:,} lines" + (" · showing the latest 5,000"
                                                             if count >= LOG_LIMIT else ""))

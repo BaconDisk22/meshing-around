@@ -107,8 +107,10 @@ class Button:
         self._hover = self._pressed = self._focused = False
         self.parent_bg = bg_token(parent)
         self.frame = tk.Frame(parent, bd=0, padx=2, pady=2)
+        # Ghost buttons read as links, so they hug their text and line up with it.
         self.label = tk.Label(self.frame, text=label, font=theme.font("body_strong"),
-                              padx=SPACE["l"], pady=SPACE["xs"] + 2, bd=0, cursor="hand2",
+                              padx=SPACE["xs"] if variant == "ghost" else SPACE["l"],
+                              pady=SPACE["xs"] + 2, bd=0, cursor="hand2",
                               takefocus=1, width=width)
         self.label.pack(fill="both", expand=True)
         for widget in (self.frame, self.label):
