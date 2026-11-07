@@ -19,8 +19,17 @@ def locate_bot(bundle: Path) -> Path:
     raise FileNotFoundError("Bundled Meshtastic bot executable missing")
 
 
+# Features that post to a mesh channel without anyone messaging the bot.
+# New desktop installs start quiet; users can opt in by editing config.ini.
+QUIET_BROADCASTS = {
+    "[sentry]": ("SentryEnabled", "highFlyingAlert"),
+    "[location]": ("ipawsAlertEnabled",),
+}
+
+
 def mac_defaults(text: str) -> str:
-    """Point the Linux serial default at a Wi-Fi radio; leave comments intact."""
+    """Point the Linux serial default at a Wi-Fi radio and switch off
+    unprompted channel broadcasts; leave comments intact."""
     lines, section = [], None
     for line in text.splitlines(keepends=True):
         stripped = line.strip()
@@ -31,6 +40,10 @@ def mac_defaults(text: str) -> str:
                 line = "type = tcp\n"
             elif stripped == "port = /dev/ttyACM0":
                 line = "hostname = meshtastic.local\n"
+        elif section in QUIET_BROADCASTS:
+            key = stripped.partition("=")[0].strip()
+            if key in QUIET_BROADCASTS[section]:
+                line = f"{key} = False\n"
         lines.append(line)
     return "".join(lines)
 
